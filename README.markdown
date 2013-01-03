@@ -60,20 +60,25 @@ Declaring ```acts_as_orchestrated``` on your class gives it two methods:
 * ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
 * ```orchestration```—call this in the context of a workflow step (execution) to access orchestration (and prerequisite) context
 
-After that you can orchestrate any method on such a class. Let's say you needed to download files from a remote system (a slow process), transform each one, and then load it into your system. Imagine you had had a Downloader class that knew how to download and an Xform class that knew how to transform the downloaded file and load it into your system. You might write an orchestration like this:
+After that you can orchestrate any method on such a class. Let's say you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you had had a Downloader class that knew how to download and an Xform class that knew how to merge the content and load the results into your system. You might write an orchestration like this:
 
 ```ruby
 xform = Xform.new
 xform.orchestrated(
   xform.orchestrated(
-    Downloader.new.orchestrated.download(
-      :from=>'http://foo.bar.com/customer_fred', :to=>'fred_file'
+    Orchestrated::LastCompletion.new(
+      Downloader.new.orchestrated.download(
+        :from=>'http://fred.com/stuff', :to=>'fred_records'
+      ),
+      Downloader.new.orchestrated.download(
+        :from=>'http://sally.com/stuff', :to=>'sally_records'
+      )
     )
-  ).transform('fred_file', 'fred_file_processed')
-).load('fred_file_processed')
+  ).merge(['fred_records', 'sally_records'], 'combined_records')
+).load('combined_records')
 ```
 
-The next time you process a delayed job, the :download message will be delivered to a Downloader. After the download is complete, the next time a delayed job is processed, the :transform message will be delivered to an Xform object.
+The next time you process delayed jobs, the :download messages will be delivered to a couple Downloaders. After the last download completes, the next time a delayed job is processed, the :merge message will be delivered to an Xform object. And on it goes…
 
 What happened there? The pattern is:
 
@@ -144,3 +149,13 @@ Contributing
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+Future Work
+-----------
+
+Some possible avenues for exploration:
+
+* orchestrated option: :max_attempts to configure max_attempts on underlying delayed job instance
+* orchestrated option: :max_run_time to configure max_run_time on underlying delayed job instance
+* orchestrated options: :queue to specify a particular named queue for the underlying delayed job
+* some way to change the run_at recalculation for failed attempts (f(n) = 5 + n**4 is not always right and what's right varies by job)
