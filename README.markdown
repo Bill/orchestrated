@@ -27,6 +27,13 @@ Or install it yourself as:
 
     $ gem install orchestrated
 
+Now generate the database migration:
+
+    $ rails g orchestrated:active_record
+    $ rake db:migrate
+
+If you do not already have [delayed_job](https://github.com/collectiveidea/delayed_job) set up, you'll need to do that as well.
+
 The API
 -------
 
