@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["bill@paydici.com"]
   gem.description   = %q{a workflow orchestration framework running on delayed_job and active_record}
   gem.summary       = %q{Orchestrated is a workflow orchestration framework running on delayed_job and active_record. In the style of delayed_job's 'delay', Orchestration lets you 'orchestrate' delivery of a message so that it will run only after others have been delivered and processed.}
-  gem.homepage      = "https://github.com/paydici/orchestration"
+  gem.homepage      = "https://github.com/paydici/orchestrated"
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($/)
