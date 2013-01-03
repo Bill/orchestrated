@@ -1,11 +1,11 @@
 Orchestrated
 ============
 
-The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a job queuing system for Ruby. It implements an elegant API for delaying execution of any object method. Not only is the execution of the method (message delivery) delayed in time, it is potentially shifted in space. By shifting in space, i.e. running in a separate virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
+The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a job queuing system for Ruby. It implements an elegant API for delaying execution of any object method. Not only is the execution of the method (message delivery) delayed in time, it is potentially shifted in space too. By shifting in space, i.e. running in a separate virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
 
-By breaking up otherwise serial execution into multiple queued jobs, a program can be made more scalable. Processing of (distributed) queues has a long and successful history in data processing for this reason.
+By breaking up otherwise serial execution into multiple queued jobs, a program can be made more scalable. This sort of distributed queue-processing architecture has a long and successful history in data processing.
 
-Queuing works well for simple tasks. By simple I mean, the task can be done all at once, in one piece. It has no dependencies on other tasks. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
+Queuing works well for simple tasks. By simple we mean, the task can be done all at once, in one piece. It has no dependencies on other tasks. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
 
 1. pipelined (multi-step) generation of complex PDF documents
 2. extract/transfer/load (ETL) jobs that may load thousands of database records
@@ -60,14 +60,20 @@ Declaring ```acts_as_orchestrated``` on your class gives it two methods:
 * ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
 * ```orchestration```—call this in the context of a workflow step (execution) to access orchestration (and prerequisite) context
 
-After that you can orchestrate any method on such a class e.g.
+After that you can orchestrate any method on such a class. Let's say you needed to download files from a remote system (a slow process), transform each one, and then load it into your system. Imagine you had had a Downloader class that knew how to download and an Xform class that knew how to transform the downloaded file and load it into your system. You might write an orchestration like this:
 
 ```ruby
-gen = StatementGenerator.new
-gen.orchestrated( orchestrated.generate(stmt_id) ).render(stmt_id)
+xform = Xform.new
+xform.orchestrated(
+  xform.orchestrated(
+    Downloader.new.orchestrated.download(
+      :from=>'http://foo.bar.com/customer_fred', :to=>'fred_file'
+    )
+  ).transform('fred_file', 'fred_file_processed')
+).load('fred_file_processed')
 ```
 
-The next time you process a delayed job, the :generate message will be delivered. The time after that, the :render message will be delivered.
+The next time you process a delayed job, the :download message will be delivered to a Downloader. After the download is complete, the next time a delayed job is processed, the :transform message will be delivered to an Xform object.
 
 What happened there? The pattern is:
 
@@ -75,7 +81,7 @@ What happened there? The pattern is:
 2. call orchestrated on it: this returns an "orchestration"
 3. send a message to the orchestration (returned in the second step)
 
-Now the messages you can send in (3) are limited to the messages that your object can respond to. The message will be "remembered" by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
+Now the messages you can send in (3) are limited to the messages that your object can respond to. The message will be remembered by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
 
 Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, orchestrated is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, orchestrated keeps track of everything.
 
