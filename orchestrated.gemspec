@@ -18,16 +18,19 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency     'delayed_job_active_record', '~> 0.3'
-  gem.add_runtime_dependency     'activerecord', ['>= 3']
+  gem.add_runtime_dependency     'delayed_job_active_record', '>= 0.3'
+  gem.add_runtime_dependency     'activerecord', ['~> 3']
   gem.add_runtime_dependency     'state_machine', ['>= 1']
 
-  gem.add_development_dependency 'rake'
-  gem.add_development_dependency 'rails', ['>= 3'] # for rspec-rails
-  gem.add_development_dependency 'rspec-rails'
+  gem.add_development_dependency 'rake', ['>= 10']
+  gem.add_development_dependency 'rails', ['~> 3'] # for rspec-rails
+  gem.add_development_dependency 'rspec-rails', ['>= 2.12']
   # I couldn't get rspecs transactional fixtures setting to do savepoints
   # in this project (which is not _really_ a Rails app). database_cleaner
   # claims it'll help us clean up the database so let's try it!
-  gem.add_development_dependency 'database_cleaner'
-  gem.add_development_dependency 'sqlite3'
+  gem.add_development_dependency 'database_cleaner', ['>= 0.9']
+  gem.add_development_dependency 'sqlite3', ['>= 1.3.6']
+  gem.add_development_dependency 'debugger'
+  # The state_machine:draw rake task needs this
+  gem.add_development_dependency 'ruby-graphviz', ['>= 0.9.0']
 end
