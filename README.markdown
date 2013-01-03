@@ -1,7 +1,7 @@
 Orchestrated
 ============
 
-The [delayed_job](https://github.com/tobi/delayed_job) Ruby Gem provides a job queuing system for Ruby. It implements an elegant API for delaying execution of any object method. Not only is the execution of the method (message delivery) delayed in time, it is potentially shifted in space. By shifting in space, i.e. running in a separate virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
+The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a job queuing system for Ruby. It implements an elegant API for delaying execution of any object method. Not only is the execution of the method (message delivery) delayed in time, it is potentially shifted in space. By shifting in space, i.e. running in a separate virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
 
 By breaking up otherwise serial execution into multiple queued jobs, a program can be made more scalable. Processing of (distributed) queues has a long and successful history in data processing for this reason.
 
@@ -70,12 +70,12 @@ What happened there? The pattern is:
 
 Now the messages you can send in (3) are limited to the messages that your object can respond to. The message will be "remembered" by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
 
-Not accidentally, this is similar to the way [delayed_job](https://github.com/tobi/delayed_job)'s delay method works. Under the covers, orchestrated is conspiring with [delayed_job](https://github.com/tobi/delayed_job) when it comes time to actually execute a workflow step. Before that time though, orchestrated keeps track of everything.
+Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, orchestrated is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, orchestrated keeps track of everything.
 
 Key Concept: Prerequisites (Completion Expressions)
 ---------------------------------------------------
 
-Unlike [delayed_job](https://github.com/tobi/delayed_job) ```delay```, the orchestrated ```orchestrated``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
+Unlike [delayed_job](https://github.com/collectiveidea/delayed_job) ```delay```, the orchestrated ```orchestrated``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
 
 The return value from "orchestrate" is itself a ready-to-use prerequisite. You saw this in the statement generation example above. The result of the first ```orchestrated``` call was sent as an argument to the second. In this way, the second workflow step was suspended until after the first one finished. You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the "generate" call).
 
@@ -93,13 +93,13 @@ Key Concept: Orchestration State
 
 An orchestration can be in one of six (6) states:
 
-![Alt text](https://github.com/paydici/orchestrated_app/raw/master/Orchestrated::Orchestration_state.png 'Orchestration States')
+![Alt text](https://github.com/paydici/orchestrated/raw/master/Orchestrated::Orchestration_state.png 'Orchestration States')
 
 You'll never see an orchestration in the "new" state, it's for internal use in the framework. But all the others are interesting.
 
-When you create a new orchestration that is waiting on a prerequisite that is not complete yet, the orchestration will be in the "waiting" state. Some time later, if that prerequisite completes, then your orchestration will become "ready". A "ready" orchestration is automatically queued to run by the framework (via [delayed_job](https://github.com/tobi/delayed_job)).
+When you create a new orchestration that is waiting on a prerequisite that is not complete yet, the orchestration will be in the "waiting" state. Some time later, if that prerequisite completes, then your orchestration will become "ready". A "ready" orchestration is automatically queued to run by the framework (via [delayed_job](https://github.com/collectiveidea/delayed_job)).
 
-A "ready" orchestration will use [delayed_job](https://github.com/tobi/delayed_job) to delivery its (delayed) message. In the context of such a message delivery (inside your object method e.g. StatementGenerator#generate or StatementGenerator#render) you can rely on the ability to access the current Orchestration (context) object via the "orchestration" accessor.
+A "ready" orchestration will use [delayed_job](https://github.com/collectiveidea/delayed_job) to delivery its (delayed) message. In the context of such a message delivery (inside your object method e.g. StatementGenerator#generate or StatementGenerator#render) you can rely on the ability to access the current Orchestration (context) object via the "orchestration" accessor.
 
 After your workflow step executes, the orchestration moves into either the "succeeded" or "failed" state.
 
@@ -112,7 +112,7 @@ It is not just successful completion of orchestrated methods that causes depende
 Failure (An Option)
 -------------------
 
-Orchestration is built atop [delayed_job](https://github.com/tobi/delayed_job) and borrows [delayed_job](https://github.com/tobi/delayed_job)'s failure semantics. Neither framework imposes any special constraints on the (delayed or orchestrated) methods. In particular, there are no special return values to signal "failure". Orchestration adopts [delayed_job](https://github.com/tobi/delayed_job)'s semantics for failure detection: a method that raises an exception has failed. After a certain number of retries (configurable in [delayed_job](https://github.com/tobi/delayed_job)) the jobs is deemed permanently failed. When that happens, the corresponding orchestration is marked "failed".
+Orchestration is built atop [delayed_job](https://github.com/collectiveidea/delayed_job) and borrows [delayed_job](https://github.com/collectiveidea/delayed_job)'s failure semantics. Neither framework imposes any special constraints on the (delayed or orchestrated) methods. In particular, there are no special return values to signal "failure". Orchestration adopts [delayed_job](https://github.com/collectiveidea/delayed_job)'s semantics for failure detection: a method that raises an exception has failed. After a certain number of retries (configurable in [delayed_job](https://github.com/collectiveidea/delayed_job)) the jobs is deemed permanently failed. When that happens, the corresponding orchestration is marked "failed".
 
 See the failure_spec if you'd like to understand more.
 

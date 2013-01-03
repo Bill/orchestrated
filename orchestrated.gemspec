@@ -30,5 +30,4 @@ Gem::Specification.new do |gem|
   # claims it'll help us clean up the database so let's try it!
   gem.add_development_dependency 'database_cleaner'
   gem.add_development_dependency 'sqlite3'
-
 end
