@@ -5,7 +5,7 @@ The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provid
 
 By breaking up otherwise serial execution into multiple queued jobs, a program can be made more scalable. This sort of distributed queue-processing architecture has a long and successful history in data processing.
 
-Queuing works well for simple tasks. By simple we mean, the task can be done all at once, in one piece. It has no dependencies on other tasks. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
+Queuing works well for simple tasks. By simple we mean the task can be done all at once, in one piece. It has no dependencies on other tasks. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
 
 1. pipelined (multi-step) generation of complex PDF documents
 2. extract/transfer/load (ETL) jobs that may load thousands of database records
