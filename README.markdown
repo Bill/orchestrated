@@ -109,7 +109,7 @@ See the completion_spec for examples of how to combine these different prerequis
 Key Concept: Orchestration State
 --------------------------------
 
-An orchestration can be in one of six (6) states:
+An orchestration can be in one of a few states:
 
 ![Alt text](https://github.com/paydici/orchestrated/raw/master/Orchestrated::Orchestration_state.png 'Orchestration States')
 
