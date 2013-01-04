@@ -84,6 +84,7 @@ require 'spec_helper_methods'
 require 'database_cleaner' # see comments below
 
 RSpec.configure do |config|
+
   # This standard Rails approach won't work in this project (which is not
   # _really_ a Rails app after all.
   #   config.use_transactional_fixtures = true
@@ -106,6 +107,15 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   config.order = "random"
+
+  # Use color in STDOUT
+  config.color_enabled = true
+
+  # Use color not only in STDOUT but also in pagers and files
+  config.tty = true
+
+  # Use the specified formatter
+  config.formatter = :progress # :documentation :progress, :html, :textmate
 
   config.include SpecHelperMethods
 end

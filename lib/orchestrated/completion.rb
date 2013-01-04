@@ -72,7 +72,7 @@ module Orchestrated
       notify_dependents_of_completion
     end
     def prerequisite_canceled
-      notify_dependents_of_completion unless prerequisite_associations.without_states('canceled').exists?
+      notify_dependents_of_cancellation unless prerequisite_associations.without_states('canceled').exists?
     end
   end
   class OrchestrationCompletionShim < CompletionExpression

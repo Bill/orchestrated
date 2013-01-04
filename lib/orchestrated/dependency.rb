@@ -16,11 +16,11 @@ module Orchestrated
       event :prerequisite_canceled do
         transition :incomplete => :canceled
       end
-      after_transition any => :complete do |orchestration, transition|
-        orchestration.dependent.prerequisite_complete
+      after_transition any => :complete do |dependency, transition|
+        dependency.dependent.prerequisite_complete
       end
-      after_transition any => :canceled do |orchestration, transition|
-        orchestration.dependent.prerequisite_canceled
+      after_transition any => :canceled do |dependency, transition|
+        dependency.dependent.prerequisite_canceled
       end
     end
   end
