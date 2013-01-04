@@ -58,9 +58,10 @@ ActiveRecord::Schema.define do
       # the Rails model
       table.references :orchestration
     end
-    create_table :composited_completions do |table|
-      table.references :composite_completion
-      table.references :completion_expression
+    create_table :orchestration_dependencies do |table|
+      table.string     :state
+      table.references :dependent
+      table.references :prerequisite
     end
 end
 

@@ -15,14 +15,15 @@ class CreateOrchestrated < ActiveRecord::Migration
       # the Rails model
       table.references :orchestration
     end
-    create_table :composited_completions do |table|
-      table.references :composite_completion
-      table.references :completion_expression
+    create_table :orchestration_dependencies do |table|
+      table.string     :state
+      table.references :dependent
+      table.references :prerequisite
     end
   end
 
   def self.down
-    drop_table :composited_completions
+    drop_table :orchestration_dependencies
     drop_table :completion_expressions
     drop_table :orchestrations
   end

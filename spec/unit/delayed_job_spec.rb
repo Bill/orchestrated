@@ -52,7 +52,7 @@ describe Delayed::Job do
       job.custom_action
     end
     it 'should start with an empty queue' do
-      expect(DJ.job_count).to be(0)
+      expect(DJ.job_count).to eq(0)
     end
     it 'should enqueue a job' do
       expect {

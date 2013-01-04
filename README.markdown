@@ -113,8 +113,6 @@ An orchestration can be in one of six (6) states:
 
 ![Alt text](https://github.com/paydici/orchestrated/raw/master/Orchestrated::Orchestration_state.png 'Orchestration States')
 
-You'll never see an orchestration in the "new" state, it's for internal use in the framework. But all the others are interesting.
-
 When you create a new orchestration that is waiting on a prerequisite that is not complete yet, the orchestration will be in the "waiting" state. Some time later, if that prerequisite completes, then your orchestration will become "ready". A "ready" orchestration is automatically queued to run by the framework (via [delayed_job](https://github.com/collectiveidea/delayed_job)).
 
 A "ready" orchestration will use [delayed_job](https://github.com/collectiveidea/delayed_job) to delivery its (delayed) message. In the context of such a message delivery (inside your object method e.g. StatementGenerator#generate or StatementGenerator#render) you can rely on the ability to access the current Orchestration (context) object via the "orchestration" accessor.

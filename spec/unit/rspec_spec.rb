@@ -14,7 +14,7 @@ describe 'rspec' do
         block = block_arg
       }
       Foo.new.bump(1){|hello| puts hello}
-      expect(x).to be(1)
+      expect(x).to eq(1)
       expect(block).to be_kind_of(Proc)
     end
   end

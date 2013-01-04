@@ -4,7 +4,7 @@ require 'orchestrated'
 
 shared_examples_for 'literally complete' do
   it 'should immediately enqueue the dependent orchestration' do
-    expect(DJ.job_count).to be(1)
+    expect(DJ.job_count).to eq(1)
   end
   it 'should cause the dependent orchestration to run immediately' do
     First.any_instance.should_receive(:do_first_thing)
@@ -31,7 +31,7 @@ describe Orchestrated::CompletionExpression do
   context 'OrchestrationCompletion' do
     before(:each){Second.new.orchestrated( First.new.orchestrated.do_first_thing(3)).do_second_thing(4)}
     it 'should block second orchestration until after first runs' do
-      expect(DJ.job_count).to be(1)
+      expect(DJ.job_count).to eq(1)
     end
     it 'should run second orchestration after first is complete' do
       Second.any_instance.should_receive(:do_second_thing)
@@ -46,7 +46,7 @@ describe Orchestrated::CompletionExpression do
           ).do_second_thing(5)
       end
       it 'should immediately enqueue the dependent orchestration' do
-        expect(DJ.job_count).to be(1)
+        expect(DJ.job_count).to eq(1)
       end
     end
     context 'given two OrchestrationCompletions' do
@@ -57,9 +57,9 @@ describe Orchestrated::CompletionExpression do
           ).do_second_thing(5)
       end
       it 'should enqueue the dependent orchestration as soon as the first prerequisite completes' do
-        expect(DJ.job_count).to be(2)
+        expect(DJ.job_count).to eq(2)
         DJ.work(1)
-        expect(DJ.job_count).to be(2)
+        expect(DJ.job_count).to eq(2)
       end
       it 'should cause the dependent orchestration to run eventually' do
         Second.any_instance.should_receive(:do_second_thing).with(5)
@@ -80,9 +80,9 @@ describe Orchestrated::CompletionExpression do
           ).do_second_thing(5)
       end
       it 'should not enqueue the dependent orchestration as soon as the first prerequisite completes' do
-        expect(DJ.job_count).to be(2)
+        expect(DJ.job_count).to eq(2)
         DJ.work(1)
-        expect(DJ.job_count).to be(1)
+        expect(DJ.job_count).to eq(1)
       end
       it 'should not run the dependent orchestration as soon as the first prerequisite completes' do
         Second.any_instance.should_not_receive(:do_second_thing)
