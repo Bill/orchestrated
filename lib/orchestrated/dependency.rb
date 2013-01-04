@@ -2,6 +2,8 @@ require 'state_machine'
 
 module Orchestrated
   class OrchestrationDependency < ActiveRecord::Base
+    # TODO: figure out why Rails thinks I'm mass-assigning this over in Orchestration when I'm not really!
+    attr_accessible :prerequisite_id
     belongs_to :dependent, :class_name => 'CompletionExpression'
     belongs_to :prerequisite, :class_name => 'CompletionExpression'
     state_machine :initial => :incomplete do
