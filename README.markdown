@@ -40,15 +40,15 @@ The API
 To orchestrate (methods) on your own classes you simply call ```acts_as_orchestrated``` in the class definition like this:
 
 ```ruby
-class StatementGenerator
+class Xform
 
   acts_as_orchestrated
 
-  def generate(statement_id)
+  def merge(many, one)
   ...
   end
 
-  def render(statement_id)
+  def load(stuff)
   ...
   end
 
