@@ -73,26 +73,23 @@ module Orchestrated
 
     end
 
+    # Actually creates a completion (wrapper). Not _exactly_ an orchestration—ssh…
     def self.create( value, sym, args, prerequisite)
-      # set prerequisite in new call so it is passed to state_machine :initial proc
-      new.tap do |orchestration|
-
-        orchestration.handler = Handler.new( value, sym, args)
-
-        # wee! static analysis FTW!
-        raise 'prerequisite can never be complete' if prerequisite.never_complete?
-
-        prerequisite.save!
-        orchestration.save!
-        interest = OrchestrationInterest.new.tap do |interest|
-          interest.prerequisite = prerequisite
-          interest.orchestration = orchestration
-        end
-        interest.save!
-
-        # prime the pump for a constant prerequisite
-        orchestration.prerequisite_complete! if prerequisite.complete?
-     end
+      # wee! static analysis FTW!
+      raise 'prerequisite can never be complete' if prerequisite.never_complete?
+      prerequisite.save!
+      OrchestrationCompletion.new.tap do |completion|
+        completion.orchestration = new.tap do |orchestration|
+          orchestration.handler = Handler.new( value, sym, args)
+          orchestration.save!
+          interest = OrchestrationInterest.new.tap do |interest|
+            interest.prerequisite = prerequisite
+            interest.orchestration = orchestration
+            interest.save!
+          end # interest
+        end # orchestration
+        completion.save!
+      end # completion
     end
 
     def enqueue

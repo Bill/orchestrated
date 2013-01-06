@@ -7,11 +7,7 @@ module Orchestrated
     end
     def method_missing(sym, *args)
       raise 'cannot orchestrate with blocks because they are not portable across processes' if block_given?
-      OrchestrationCompletion.new do |completion|
-        completion.orchestration = Orchestration.create( @target, sym, args, @prerequisite)
-      end.tap do |completion|
-        completion.save!
-      end
+      Orchestration.create( @target, sym, args, @prerequisite)
     end
   end
 

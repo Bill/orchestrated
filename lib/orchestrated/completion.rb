@@ -44,10 +44,10 @@ module Orchestrated
     def +(c); self << c; end # synonymc
   end
   class LastCompletion < CompositeCompletion
-    def complete?; prerequisites.all?(&:complete?); end
-    def always_complete?; prerequisites.empty?; end
+    def complete?; prerequisite_associations.all?(&:complete?); end
+    def always_complete?; prerequisite_associations.empty?; end
     def never_complete?; prerequisites.any?(&:never_complete?); end
-    def canceled?; prerequisites.any?(&:canceled?); end
+    def canceled?; prerequisite_associations.any?(&:canceled?); end
     def <<(c)
       prerequisites << c unless c.always_complete?
       self
@@ -60,10 +60,10 @@ module Orchestrated
     end
   end
   class FirstCompletion < CompositeCompletion
-    def complete?; prerequisites.any?(&:complete?); end
+    def complete?; prerequisite_associations.any?(&:complete?); end
     def always_complete?; prerequisites.any?(&:always_complete?); end
-    def never_complete?; prerequisites.empty?; end
-    def canceled?; prerequisites.all?(&:canceled?); end
+    def never_complete?; prerequisite_associations.empty?; end
+    def canceled?; prerequisite_associations.all?(&:canceled?); end
     def <<(c)
       prerequisites << c unless c.never_complete?
       self
