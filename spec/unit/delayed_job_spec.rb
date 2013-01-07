@@ -21,9 +21,9 @@ class TestJob < Struct.new(:name)
   def enqueue(job)
   end
 
-  def perform
-    self.class.called[:perform] += 1
-  end
+  # def perform
+  #   self.class.called[:perform] += 1
+  # end
 
   def before(job)
   end

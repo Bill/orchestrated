@@ -55,11 +55,12 @@ module Orchestrated
         transition [:waiting, :ready] => :canceled
       end
 
-      after_transition any => :ready do |orchestration, transition|
+      # a before (rather than an after) so that if we change state it'll be saved (piggybacked)
+      before_transition any => :ready do |orchestration, transition|
         orchestration.enqueue
       end
 
-      after_transition :ready => :canceled do |orchestration, transition|
+      before_transition :ready => :canceled do |orchestration, transition|
         orchestration.dequeue
       end
 
@@ -87,6 +88,8 @@ module Orchestrated
             interest.orchestration = orchestration
             interest.save!
           end # interest
+          # interest linkage can often change orchestration state so we have to reload here
+          orchestration.reload
         end # orchestration
         completion.save!
       end # completion
@@ -97,7 +100,7 @@ module Orchestrated
     end
 
     def dequeue
-      delayed_job.destroy# if DelayedJob.exists?(delayed_job_id)
+      self.delayed_job.destroy
     end
 
   end

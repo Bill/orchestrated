@@ -1,6 +1,5 @@
 class Foo
   def bump(x)
-    x+1
   end
 end
 

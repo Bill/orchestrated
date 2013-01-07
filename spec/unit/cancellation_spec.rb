@@ -36,9 +36,15 @@ describe 'cancellation' do
     before(:each) do
       @first_prerequisite = @dependent = First.new.orchestrated.do_first_thing(1)
     end
+    it 'should be ready' do
+      expect(@dependent.orchestration.state).to eq('ready')
+    end
     context 'that is ready' do
       include_context 'cancelling first prerequisite'
       it_should_behave_like 'cancellation:'
+      it 'should have no work queued' do
+        expect(DJ.job_count).to eq(0)
+      end
       it 'should never subsequently deliver the orchestrated message' do
         First.any_instance.should_not_receive(:do_first_thing)
         DJ.work(1)

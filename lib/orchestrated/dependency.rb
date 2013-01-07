@@ -6,7 +6,6 @@ module Orchestrated
     attr_accessible :prerequisite_id
     belongs_to :prerequisite, :class_name => 'CompletionExpression'
     belongs_to :dependent, :class_name => 'CompletionExpression'
-
     before_validation :constrain
 
     state_machine :initial => :incomplete, :action => :save_avoiding_recursion do
@@ -35,23 +34,11 @@ module Orchestrated
     end
     def _constrain
       if prerequisite.present?
-        if prerequisite_id_changed? || new_record?
-          # this may be our first prerequisite, or our prerequisite may
-          # have changed—either way we must initialize our state
-
-          # This method can be called more than once in general since it is called
-          # as part of validation. Rather than loosening the state machine (to allow
-          # e.g. complete=>complete) we explicitly avoid re-submitting events here.
-          prerequisite_completed if prerequisite.complete? && can_prerequisite_completed?
-          prerequisite_canceled if prerequisite.canceled? && can_prerequisite_canceled?
-        else
-          # prerequisite has not changed so our state is already correct
-          if dependent_id_changed?
-            # dependent has been set for the first time—propigate state
-            call_dependent{|d| d.prerequisite_complete} if prerequisite.complete?
-            call_dependent{|d| d.prerequisite_canceled} if prerequisite.canceled?
-          end
-        end
+        # This method can be called more than once in general since it is called
+        # as part of validation. Rather than loosening the state machine (to allow
+        # e.g. complete=>complete) we explicitly avoid re-submitting events here.
+        prerequisite_completed if prerequisite.complete? && can_prerequisite_completed?
+        prerequisite_canceled if prerequisite.canceled? && can_prerequisite_canceled?
       end
       true
     end

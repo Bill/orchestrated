@@ -84,6 +84,9 @@ describe Orchestrated do
       it 'should return an Orchestration object' do
         expect(@result).to be_kind_of(Orchestrated::CompletionExpression)
       end
+      it 'should be ready' do
+        expect(@result.orchestration.state).to eq('ready')
+      end
     end
   end
   context 'invocation' do
