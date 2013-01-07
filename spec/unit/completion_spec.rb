@@ -25,7 +25,7 @@ describe Orchestrated::CompletionExpression do
   end
   context 'Incomplete' do
     it 'should immediately raise an error' do
-      expect{First.new.orchestrated(Orchestrated::Incomplete.new).do_first_thing(12)}.to raise_error
+      expect{First.new.orchestrated(Orchestrated::Incomplete.new).do_first_thing(12)}.to raise_error(ArgumentError)
     end
   end
   context 'OrchestrationCompletion' do

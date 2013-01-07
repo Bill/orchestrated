@@ -3,7 +3,7 @@ module Orchestrated
     attr_accessor :orchestrated, :method_name, :args, :orchestration_id
 
     def initialize(orchestrated, method_name, args, orchestration_id)
-      raise 'all arguments to MessageDelivery constructor are required' unless
+      raise ArgumentError.new('all arguments to MessageDelivery constructor are required') unless
         orchestrated and method_name and args and orchestration_id
       self.orchestrated = orchestrated
       self.method_name  = method_name

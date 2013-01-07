@@ -76,7 +76,7 @@ module Orchestrated
     # Actually creates a completion (wrapper). Not _exactly_ an orchestration—ssh…
     def self.create( value, sym, args, prerequisite)
       # wee! static analysis FTW!
-      raise 'prerequisite can never be complete' if prerequisite.never_complete?
+      raise ArgumentError.new('prerequisite can never be complete') if prerequisite.never_complete?
       prerequisite.save!
       OrchestrationCompletion.new.tap do |completion|
         completion.orchestration = new.tap do |orchestration|
