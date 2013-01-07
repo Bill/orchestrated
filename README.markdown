@@ -52,7 +52,13 @@ If you do not already have [delayed_job](https://github.com/collectiveidea/delay
 The API
 -------
 
-To orchestrate (methods) on your own classes you simply call ```acts_as_orchestrated``` in the class definition like this:
+To orchestrate (methods) on your own classes you simply call ```acts_as_orchestrated``` in the class definition. Declaring ```acts_as_orchestrated``` on your class defines the ```orchestrated``` method:
+
+* ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
+
+Use ```orchestrated``` to orchestrate any method on your class.
+
+Let's say for example you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you have a ```Downloader``` class that knows how to download and an ```Xform``` class that knows how to merge the content and load the results into your system. Your ```Xform``` class might look something like this:
 
 ```ruby
 class Xform
@@ -70,11 +76,7 @@ class Xform
 end
 ```
 
-Declaring ```acts_as_orchestrated``` on your class defines the ```orchestrated``` method:
-
-* ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
-
-Use ```orchestrated``` to orchestrate any method on your class. Let's say you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you have a ```Downloader``` class that knows how to download and an Xform class that knows how to merge the content and load the results into your system. You might write an orchestration like this:
+You might write an orchestration like this:
 
 ```ruby
 xform = Xform.new
