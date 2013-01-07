@@ -1,16 +1,31 @@
 Orchestrated
 ============
 
-The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a job queuing system for Ruby. It implements an elegant API for delaying execution of any object method. Not only is the execution of the method (message delivery) delayed in time, it is potentially shifted in space too. By shifting in space, i.e. running in a separate virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
+The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a restartable queuing system for Ruby. It implements an elegant API for delaying execution of any Ruby object method invocation. Not only is the message delivery delayed in time, it is potentially shifted in space too. By shifting in space, i.e. running in a different virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
 
 By breaking up otherwise serial execution into multiple queued jobs, a program can be made more scalable. This sort of distributed queue-processing architecture has a long and successful history in data processing.
 
-Queuing works well for simple tasks. By simple we mean the task can be done all at once, in one piece. It has no dependencies on other tasks. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
+Queuing works well for simple, independent tasks. By simple we mean the task can be done all at once, in one piece, with no inter-task dependencies. This works well for performing a file upload task in the background (to avoid tying up a Ruby virtual machine process/thread). More complex (compound) multi-part tasks, however, do not fit this model. Examples of complex (compound) tasks include:
 
-1. pipelined (multi-step) generation of complex PDF documents
-2. extract/transfer/load (ETL) jobs that may load thousands of database records
+1. pipelined (multi-step) generation of a complex PDF document
+2. an extract/transfer/load (ETL) job that must acquire data from source systems, transform it and load it into the target system
 
 If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "Orchestrated".
+
+Orchestrated introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
+
+The reason we refer to [delayed_job](https://github.com/collectiveidea/delayed_job) as a restartable queueing system is because, even if computers (database host, worker hosts) in the cluster crash, the work on the queues progresses. If no worker is servicing a particular queue, then work accumulates there. Once workers are available, they consume the jobs. This is a resilient architecture.
+
+With Orchestrated you can create restartable workflows, a workflow consisting of one or more dependent, queueable, tasks. This means that your workflows will continue to make progress even in the face of database and (queue) worker crashes.
+
+In summary, orchestrated workflows running atop [active_record](https://github.com/rails/rails/tree/master/activerecord) and [delayed_job](https://github.com/collectiveidea/delayed_job) have these characteristics:
+
+1. restartable—the workflows make progress even though (queue worker, and database) hosts are not always available
+2. scalable—compound workflows are broken into steps which can be executed on separate computers. Results can be accumulated from the disparate steps as needed.
+3. forgiving of external system failures—workflow steps that communicate with an external system can simply throw an exception when the system is unavailable, assured that the step will be automatically retried again later.
+4. composable—compound tasks can be defined in terms of simpler ones
+
+Read on to get started.
 
 Installation
 ------------
@@ -55,12 +70,11 @@ class Xform
 end
 ```
 
-Declaring ```acts_as_orchestrated``` on your class gives it two methods:
+Declaring ```acts_as_orchestrated``` on your class defines the ```orchestrated``` method:
 
 * ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
-* ```orchestration```—call this in the context of a workflow step (execution) to access orchestration (and prerequisite) context
 
-After that you can orchestrate any method on such a class. Let's say you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you had had a Downloader class that knew how to download and an Xform class that knew how to merge the content and load the results into your system. You might write an orchestration like this:
+Use ```orchestrated``` to orchestrate any method on your class. Let's say you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you have a ```Downloader``` class that knows how to download and an Xform class that knows how to merge the content and load the results into your system. You might write an orchestration like this:
 
 ```ruby
 xform = Xform.new
@@ -78,15 +92,16 @@ xform.orchestrated(
 ).load('combined_records')
 ```
 
-The next time you process delayed jobs, the :download messages will be delivered to a couple Downloaders. After the last download completes, the next time a delayed job is processed, the :merge message will be delivered to an Xform object. And on it goes…
+The next time you process delayed jobs, the ```download``` messages will be delivered to a couple Downloaders. After the last download completes, the next time a delayed job is processed, the ```merge``` message will be delivered to an Xform object. And on it goes…
 
 What happened there? The pattern is:
 
 1. create an orchestrated object (instantiate it)
-2. call orchestrated on it: this returns an "orchestration"
-3. send a message to the orchestration (returned in the second step)
+2. call ```orchestrated``` on it: this returns a *magic proxy* object that can respond to any of the messages your object can respond to
+3. send any message to the *magic proxy* (returned in the second step) and the framework will delay delivery of that message and immediately return a "completion expression" you can use as a prerequisite for other orchestrations
+4. (optionally) use the "completion expression" returned in (3) as a prerequisite for other orchestrations
 
-Now the messages you can send in (3) are limited to the messages that your object can respond to. The message will be remembered by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
+Now the messages you can send in (3) can be anything that your object can respond to. The message will be remembered by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
 
 Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, orchestrated is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, orchestrated keeps track of everything.
 
@@ -95,16 +110,15 @@ Key Concept: Prerequisites (Completion Expressions)
 
 Unlike [delayed_job](https://github.com/collectiveidea/delayed_job) ```delay```, the orchestrated ```orchestrated``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
 
-The return value from "orchestrate" is itself a ready-to-use prerequisite. You saw this in the statement generation example above. The result of the first ```orchestrated``` call was sent as an argument to the second. In this way, the second workflow step was suspended until after the first one finished. You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the "generate" call).
+The return value from messaging the *magic proxy* is itself a ready-to-use prerequisite. You saw this in the statement generation example above. The result of the first call to ```orchestrated``` calls (to "download") were sent as an argument to the third ("merge"). In this way, the "merge" workflow step was suspended until after the "download"s finished. You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the "download" calls).
 
-There are five kinds of prerequisite in all. Some of them are used for combining others. The prerequisites types, also known as "completion expressions" are:
+Users of the framework deal directly with three kinds of prerequisite or "completion expression":
 
-1. ```OrchestrationCompletion```—returned by "orchestrate", complete when its associated orchestration is complete
-2. ```Complete```—always complete
-3. ```FirstCompletion```—aggregates other completions: complete after the first one completes
-4. ```LastCompletion```—aggregates other completions: complete after all of them are complete
+1. ```OrchestrationCompletion```—returned messages to the *magic proxy*, complete when its associated orchestration is complete
+2. ```FirstCompletion```—aggregates other completions: complete after the first one completes
+3. ```LastCompletion```—aggregates other completions: complete after all of them are complete
 
-See the completion_spec for examples of how to combine these different prerequisite types into completion expressions.
+There are other kinds of completion expression used internally by the framework but these three are the important ones for users to understand. See the completion_spec for examples of how to combine these different prerequisite types into completion expressions.
 
 Key Concept: Orchestration State
 --------------------------------
@@ -115,15 +129,15 @@ An orchestration can be in one of a few states:
 
 When you create a new orchestration that is waiting on a prerequisite that is not complete yet, the orchestration will be in the "waiting" state. Some time later, if that prerequisite completes, then your orchestration will become "ready". A "ready" orchestration is automatically queued to run by the framework (via [delayed_job](https://github.com/collectiveidea/delayed_job)).
 
-A "ready" orchestration will use [delayed_job](https://github.com/collectiveidea/delayed_job) to delivery its (delayed) message. In the context of such a message delivery (inside your object method e.g. StatementGenerator#generate or StatementGenerator#render) you can rely on the ability to access the current Orchestration (context) object via the "orchestration" accessor.
+A "ready" orchestration will use [delayed_job](https://github.com/collectiveidea/delayed_job) to deliver its (delayed) message. In the context of such a message delivery (inside your object method e.g. ```Xform#merge``` or ```Xform#load``` in our example) you can rely on the ability to access the current Orchestration (context) object via the ```orchestration``` accessor. Be careful with that one though. You really shouldn't need it very often, and to use it, you have to understand framework internals.
 
 After your workflow step executes, the orchestration moves into either the "succeeded" or "failed" state.
 
-When an orchestration is "ready" or "waiting" it may be canceled by sending it the ```cancel!``` message. This moves it to the "canceled" state and prevents delivery of the orchestrated message (in the future).
+When an orchestration is "ready" or "waiting" it may be canceled by sending it the ```cancel!``` message (i.e. a ```cancel!``` message to the ```OrchestrationCompletion```. This moves it to the orchestration to the "canceled" state and prevents delivery of the orchestrated message (in the future).
 
 It is important to understand that both of the states: "succeeded" and "failed" are part of a "super-state": "complete". When an orchestration is in either of those two states, it will return ```true``` in response to the ```complete?``` message.
 
-It is not just successful completion of orchestrated methods that causes dependent ones to run—a "failed" orchestration is complete too! If you have an orchestration that actually requires successful completion of its prerequisite then it can inspect the prerequisite as needed. It's accessible through the ```orchestration`` accessor (on the orchestrated object).
+It is not just successful completion of orchestrated methods that causes dependent ones to run—a "failed" orchestration is complete too! If you have an orchestration that actually requires successful completion of its prerequisite then your method can inspect the prerequisite as needed, by accessing it via ```self.orchestration.prerequisite.prerequisite```.
 
 Failure (An Option)
 -------------------
