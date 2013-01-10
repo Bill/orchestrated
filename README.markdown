@@ -1,5 +1,5 @@
-Orchestrated
-============
+(Orchestrated)[https://github.com/paydici/orchestrated]
+=======================================================
 
 The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a restartable queuing system for Ruby. It implements an elegant API for delaying execution of any Ruby object method invocation. Not only is the message delivery delayed in time, it is potentially shifted in space too. By shifting in space, i.e. running in a different virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
 
@@ -10,13 +10,13 @@ Queuing works well for simple, independent tasks. By simple we mean the task can
 1. pipelined (multi-step) generation of a complex PDF document
 2. an extract/transfer/load (ETL) job that must acquire data from source systems, transform it and load it into the target system
 
-If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "Orchestrated".
+If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "(Orchestrated)[https://github.com/paydici/orchestrated]".
 
-Orchestrated introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
+(Orchestrated)[https://github.com/paydici/orchestrated] introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
 
 The reason we refer to [delayed_job](https://github.com/collectiveidea/delayed_job) as a restartable queueing system is because, even if computers (database host, worker hosts) in the cluster crash, the work on the queues progresses. If no worker is servicing a particular queue, then work accumulates there. Once workers are available, they consume the jobs. This is a resilient architecture.
 
-With Orchestrated you can create restartable workflows, a workflow consisting of one or more dependent, queueable, tasks. This means that your workflows will continue to make progress even in the face of database and (queue) worker crashes.
+With (Orchestrated)[https://github.com/paydici/orchestrated] you can create restartable workflows, a workflow consisting of one or more dependent, queueable, tasks. This means that your workflows will continue to make progress even in the face of database and (queue) worker crashes.
 
 In summary, orchestrated workflows running atop [active_record](https://github.com/rails/rails/tree/master/activerecord) and [delayed_job](https://github.com/collectiveidea/delayed_job) have these characteristics:
 
@@ -58,7 +58,7 @@ To orchestrate (methods) on your own classes you simply call ```acts_as_orchestr
 
 Use ```orchestrated``` to orchestrate any method on your class.
 
-Let's say for example you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. Imagine you have a ```Downloader``` class that knows how to download and an ```Xform``` class that knows how to merge the content and load the results into your system. Your ```Xform``` class might look something like this:
+Let's say for example you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. This sort of workflow is sometimes referred to as extract/transfer/load or ETL. Imagine you have a ```Downloader``` class that knows how to download and an ```Xform``` class that knows how to merge the content and load the results into your system. Your ```Xform``` class might look something like this:
 
 ```ruby
 class Xform
@@ -105,18 +105,20 @@ What happened there? The pattern is:
 
 Now the messages you can send in (3) can be anything that your object can respond to. The message will be remembered by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
 
-Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, orchestrated is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, orchestrated keeps track of everything.
+Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, (Orchestrated)[https://github.com/paydici/orchestrated] is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, (Orchestrated)[https://github.com/paydici/orchestrated] keeps track of everything.
 
 Key Concept: Prerequisites (Completion Expressions)
 ---------------------------------------------------
 
 Unlike [delayed_job](https://github.com/collectiveidea/delayed_job) ```delay```, the orchestrated ```orchestrated``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
 
-The return value from messaging the *magic proxy* is itself a ready-to-use prerequisite. You saw this in the statement generation example above. The result of the first call to ```orchestrated``` calls (to "download") were sent as an argument to the third ("merge"). In this way, the "merge" workflow step was suspended until after the "download"s finished. You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the "download" calls).
+The return value from messaging the *magic proxy* is itself a ready-to-use prerequisite. You saw this in the ETL example above. The result of the first call to ```orchestrated``` calls (to ```download```) were sent as an argument to the third (```merge```). In this way, the ```merge``` workflow step was suspended until after the ```download```s finished.
+
+You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the ```download``` calls). If calling ```orchestrated``` with no parameters makes the step ready to run immediately then why should we bother to call it at all? Why not just call the method directly? The answer is that by calling ```orchestrated``` we are submitting the step to the underlying queueing system, enabling the step to be run on other resources (computers). Had we called the ```download``` directly it would have blocked the Ruby thread and would not have taken advantage of (potentially many) ```delayed_job``` job workers.
 
 Users of the framework deal directly with three kinds of prerequisite or "completion expression":
 
-1. ```OrchestrationCompletion```—returned messages to the *magic proxy*, complete when its associated orchestration is complete
+1. ```OrchestrationCompletion```—returned from any message to a *magic proxy*: complete when its associated orchestration is complete
 2. ```FirstCompletion```—aggregates other completions: complete after the first one completes
 3. ```LastCompletion```—aggregates other completions: complete after all of them are complete
 
@@ -135,7 +137,7 @@ A "ready" orchestration will use [delayed_job](https://github.com/collectiveidea
 
 After your workflow step executes, the orchestration moves into either the "succeeded" or "failed" state.
 
-When an orchestration is "ready" or "waiting" it may be canceled by sending it the ```cancel!``` message (i.e. a ```cancel!``` message to the ```OrchestrationCompletion```. This moves it to the orchestration to the "canceled" state and prevents delivery of the orchestrated message (in the future).
+When an orchestration is "ready" or "waiting" it may be canceled by sending it the ```cancel!``` message (i.e. a ```cancel!``` message to the ```OrchestrationCompletion```). This moves the orchestration to the "canceled" state and prevents subsequent delivery of the orchestrated message.
 
 It is important to understand that both of the states: "succeeded" and "failed" are part of a "super-state": "complete". When an orchestration is in either of those two states, it will return ```true``` in response to the ```complete?``` message.
 
@@ -144,7 +146,7 @@ It is not just successful completion of orchestrated methods that causes depende
 Failure (An Option)
 -------------------
 
-Orchestration is built atop [delayed_job](https://github.com/collectiveidea/delayed_job) and borrows [delayed_job](https://github.com/collectiveidea/delayed_job)'s failure semantics. Neither framework imposes any special constraints on the (delayed or orchestrated) methods. In particular, there are no special return values to signal "failure". Orchestration adopts [delayed_job](https://github.com/collectiveidea/delayed_job)'s semantics for failure detection: a method that raises an exception has failed. After a certain number of retries (configurable in [delayed_job](https://github.com/collectiveidea/delayed_job)) the jobs is deemed permanently failed. When that happens, the corresponding orchestration is marked "failed".
+Since Orchestration is built atop [delayed_job](https://github.com/collectiveidea/delayed_job) and borrows [delayed_job](https://github.com/collectiveidea/delayed_job)'s failure semantics. Neither framework imposes any special constraints on the (delayed or orchestrated) methods. In particular, there are no special return values to signal "failure". Orchestration adopts [delayed_job](https://github.com/collectiveidea/delayed_job)'s semantics for failure detection: a method that raises an exception has failed. After a certain number of retries (configurable in [delayed_job](https://github.com/collectiveidea/delayed_job)) the jobs is deemed permanently failed. When that happens, the corresponding orchestration is marked "failed". Until all the retries have been attempted, the orchestration remains in the "ready" state (as it was before the first failed attempt).
 
 See the failure_spec if you'd like to understand more.
 
