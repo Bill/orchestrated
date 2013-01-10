@@ -175,3 +175,10 @@ Some possible avenues for exploration:
 * orchestrated option: :max_run_time to configure max_run_time on underlying delayed job instance
 * orchestrated options: :queue to specify a particular named queue for the underlying delayed job
 * some way to change the run_at recalculation for failed attempts (f(n) = 5 + n**4 is not always right and what's right varies by job)
+
+License
+-------
+
+Copyright &copy; 2013 Paydici Inc. Distributed under the MIT License. See [LICENSE.txt](https://github.com/paydici/orchestrated/blob/master/LICENSE.txt) for further details.
+
+Contains code originally from [delayed_job](https://github.com/collectiveidea/delayed_job) Copyright &copy; 2005 Tobias Luetke, [Ruby on Rails](https://github.com/rails/rails), and [Ick](https://github.com/raganwald-deprecated/ick); all of which are also under the MIT License.
