@@ -1,4 +1,4 @@
-(Orchestrated)[https://github.com/paydici/orchestrated]
+[Orchestrated](https://github.com/paydici/orchestrated)
 =======================================================
 
 The [delayed_job](https://github.com/collectiveidea/delayed_job) Ruby Gem provides a restartable queuing system for Ruby. It implements an elegant API for delaying execution of any Ruby object method invocation. Not only is the message delivery delayed in time, it is potentially shifted in space too. By shifting in space, i.e. running in a different virtual machine, possibly on a separate computer, multiple CPUs can be brought to bear on a computing problem.
@@ -10,13 +10,13 @@ Queuing works well for simple, independent tasks. By simple we mean the task can
 1. pipelined (multi-step) generation of a complex PDF document
 2. an extract/transfer/load (ETL) job that must acquire data from source systems, transform it and load it into the target system
 
-If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "(Orchestrated)[https://github.com/paydici/orchestrated]".
+If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "[Orchestrated](https://github.com/paydici/orchestrated)".
 
-(Orchestrated)[https://github.com/paydici/orchestrated] introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
+[Orchestrated](https://github.com/paydici/orchestrated) introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
 
 The reason we refer to [delayed_job](https://github.com/collectiveidea/delayed_job) as a restartable queueing system is because, even if computers (database host, worker hosts) in the cluster crash, the work on the queues progresses. If no worker is servicing a particular queue, then work accumulates there. Once workers are available, they consume the jobs. This is a resilient architecture.
 
-With (Orchestrated)[https://github.com/paydici/orchestrated] you can create restartable workflows, a workflow consisting of one or more dependent, queueable, tasks. This means that your workflows will continue to make progress even in the face of database and (queue) worker crashes.
+With [Orchestrated](https://github.com/paydici/orchestrated) you can create restartable workflows, a workflow consisting of one or more dependent, queueable, tasks. This means that your workflows will continue to make progress even in the face of database and (queue) worker crashes.
 
 In summary, orchestrated workflows running atop [active_record](https://github.com/rails/rails/tree/master/activerecord) and [delayed_job](https://github.com/collectiveidea/delayed_job) have these characteristics:
 
@@ -105,7 +105,7 @@ What happened there? The pattern is:
 
 Now the messages you can send in (3) can be anything that your object can respond to. The message will be remembered by the framework and "replayed" (on a new instance of your object) somewhere on the network (later).
 
-Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, (Orchestrated)[https://github.com/paydici/orchestrated] is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, (Orchestrated)[https://github.com/paydici/orchestrated] keeps track of everything.
+Not accidentally, this is similar to the way [delayed_job](https://github.com/collectiveidea/delayed_job)'s delay method works. Under the covers, [Orchestrated](https://github.com/paydici/orchestrated) is conspiring with [delayed_job](https://github.com/collectiveidea/delayed_job) when it comes time to actually execute a workflow step. Before that time though, [Orchestrated](https://github.com/paydici/orchestrated) keeps track of everything.
 
 Key Concept: Prerequisites (Completion Expressions)
 ---------------------------------------------------
