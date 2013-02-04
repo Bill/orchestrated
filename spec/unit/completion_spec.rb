@@ -15,21 +15,21 @@ end
 describe Orchestrated::CompletionExpression do
   context 'Complete' do
     context 'implicitly specified' do
-      before(:each){ First.new.orchestrated.do_first_thing(12) }
+      before(:each){ First.new.orchestrate.do_first_thing(12) }
       it_should_behave_like 'literally complete'
     end
     context 'explicitly specified' do
-      before(:each){ First.new.orchestrated(Orchestrated::Complete.new).do_first_thing(12) }
+      before(:each){ First.new.orchestrate(Orchestrated::Complete.new).do_first_thing(12) }
       it_should_behave_like 'literally complete'
     end
   end
   context 'Incomplete' do
     it 'should immediately raise an error' do
-      expect{First.new.orchestrated(Orchestrated::Incomplete.new).do_first_thing(12)}.to raise_error(ArgumentError)
+      expect{First.new.orchestrate(Orchestrated::Incomplete.new).do_first_thing(12)}.to raise_error(ArgumentError)
     end
   end
   context 'OrchestrationCompletion' do
-    before(:each){Second.new.orchestrated( First.new.orchestrated.do_first_thing(3)).do_second_thing(4)}
+    before(:each){Second.new.orchestrate( First.new.orchestrate.do_first_thing(3)).do_second_thing(4)}
     it 'should block second orchestration until after first runs' do
       expect(DJ.job_count).to eq(1)
     end
@@ -41,7 +41,7 @@ describe Orchestrated::CompletionExpression do
   context 'FirstCompletion' do
     context 'given a (literal) Complete' do
       before(:each) do
-        Second.new.orchestrated( Orchestrated::FirstCompletion.new <<
+        Second.new.orchestrate( Orchestrated::FirstCompletion.new <<
           Orchestrated::Complete.new
           ).do_second_thing(5)
       end
@@ -51,9 +51,9 @@ describe Orchestrated::CompletionExpression do
     end
     context 'given two OrchestrationCompletions' do
       before(:each) do
-        Second.new.orchestrated( Orchestrated::FirstCompletion.new <<
-          First.new.orchestrated.do_first_thing(3) <<
-          First.new.orchestrated.do_first_thing(4)
+        Second.new.orchestrate( Orchestrated::FirstCompletion.new <<
+          First.new.orchestrate.do_first_thing(3) <<
+          First.new.orchestrate.do_first_thing(4)
           ).do_second_thing(5)
       end
       it 'should enqueue the dependent orchestration as soon as the first prerequisite completes' do
@@ -74,9 +74,9 @@ describe Orchestrated::CompletionExpression do
   context 'LastCompletion' do
     context 'given two OrchestrationCompletions' do
       before(:each) do
-        Second.new.orchestrated( Orchestrated::LastCompletion.new <<
-          First.new.orchestrated.do_first_thing(3) <<
-          First.new.orchestrated.do_first_thing(4)
+        Second.new.orchestrate( Orchestrated::LastCompletion.new <<
+          First.new.orchestrate.do_first_thing(3) <<
+          First.new.orchestrate.do_first_thing(4)
           ).do_second_thing(5)
       end
       it 'should not enqueue the dependent orchestration as soon as the first prerequisite completes' do

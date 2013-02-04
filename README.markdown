@@ -12,7 +12,7 @@ Queuing works well for simple, independent tasks. By simple we mean the task can
 
 If we would like to scale these compound operations, breaking them into smaller parts, and managing the execution of those parts across many computers, we need an "orchestrator". This project implements just such a framework, called "[Orchestrated](https://github.com/paydici/orchestrated)".
 
-[Orchestrated](https://github.com/paydici/orchestrated) introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrated``` instance method. You use ```orchestrated``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrated``` takes a parameter that lets you specify dependencies between your jobs.
+[Orchestrated](https://github.com/paydici/orchestrated) introduces the ```acts_as_orchestrated``` Object class method. When invoked on your class, this will define the ```orchestrate``` instance method. You use ```orchestrate``` in a mannner similar to [delayed_job](https://github.com/collectiveidea/delayed_job)'s ```delay```—the difference being that ```orchestrate``` takes a parameter that lets you specify dependencies between your jobs.
 
 The reason we refer to [delayed_job](https://github.com/collectiveidea/delayed_job) as a restartable queueing system is because, even if computers (database host, worker hosts) in the cluster crash, the work on the queues progresses. If no worker is servicing a particular queue, then work accumulates there. Once workers are available, they consume the jobs. This is a resilient architecture.
 
@@ -52,11 +52,11 @@ If you do not already have [delayed_job](https://github.com/collectiveidea/delay
 The API
 -------
 
-To orchestrate (methods) on your own classes you simply call ```acts_as_orchestrated``` in the class definition. Declaring ```acts_as_orchestrated``` on your class defines the ```orchestrated``` method:
+To orchestrate (methods) on your own classes you simply call ```acts_as_orchestrated``` in the class definition. Declaring ```acts_as_orchestrated``` on your class defines the ```orchestrate``` method:
 
-* ```orchestrated```—call this to specify your workflow prerequisite, and designate a workflow step
+* ```orchestrate```—call this to specify your workflow prerequisite, and designate a workflow step
 
-Use ```orchestrated``` to orchestrate any method on your class.
+Use ```orchestrate``` to orchestrate any method on your class.
 
 Let's say for example you needed to download a couple files from remote systems (a slow process), merge their content and then load the results into your system. This sort of workflow is sometimes referred to as extract/transfer/load or ETL. Imagine you have a ```Downloader``` class that knows how to download and an ```Xform``` class that knows how to merge the content and load the results into your system. Your ```Xform``` class might look something like this:
 
@@ -80,13 +80,13 @@ You might write an orchestration like this:
 
 ```ruby
 xform = Xform.new
-xform.orchestrated(
-  xform.orchestrated(
+xform.orchestrate(
+  xform.orchestrate(
     Orchestrated::LastCompletion.new(
-      Downloader.new.orchestrated.download(
+      Downloader.new.orchestrate.download(
         :from=>'http://fred.com/stuff', :to=>'fred_records'
       ),
-      Downloader.new.orchestrated.download(
+      Downloader.new.orchestrate.download(
         :from=>'http://sally.com/stuff', :to=>'sally_records'
       )
     )
@@ -99,7 +99,7 @@ The next time you process delayed jobs, the ```download``` messages will be deli
 What happened there? The pattern is:
 
 1. create an orchestrated object (instantiate it)
-2. call ```orchestrated``` on it: this returns a *magic proxy* object that can respond to any of the messages your object can respond to
+2. call ```orchestrate``` on it: this returns a *magic proxy* object that can respond to any of the messages your object can respond to
 3. send any message to the *magic proxy* (returned in the second step) and the framework will delay delivery of that message and immediately return a "completion expression" you can use as a prerequisite for other orchestrations
 4. (optionally) use the "completion expression" returned in (3) as a prerequisite for other orchestrations
 
@@ -110,11 +110,11 @@ Not accidentally, this is similar to the way [delayed_job](https://github.com/co
 Key Concept: Prerequisites (Completion Expressions)
 ---------------------------------------------------
 
-Unlike [delayed_job](https://github.com/collectiveidea/delayed_job) ```delay```, the orchestrated ```orchestrated``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
+Unlike [delayed_job](https://github.com/collectiveidea/delayed_job) ```delay```, the orchestrated ```orchestrate``` method takes an optional parameter: the prerequisite. The prerequisite determines when your workflow step is ready to run.
 
-The return value from messaging the *magic proxy* is itself a ready-to-use prerequisite. You saw this in the ETL example above. The result of the first call to ```orchestrated``` calls (to ```download```) were sent as an argument to the third (```merge```). In this way, the ```merge``` workflow step was suspended until after the ```download```s finished.
+The return value from messaging the *magic proxy* is itself a ready-to-use prerequisite. You saw this in the ETL example above. The result of the first call to ```orchestrate``` calls (to ```download```) were sent as an argument to the third (```merge```). In this way, the ```merge``` workflow step was suspended until after the ```download```s finished.
 
-You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the ```download``` calls). If calling ```orchestrated``` with no parameters makes the step ready to run immediately then why should we bother to call it at all? Why not just call the method directly? The answer is that by calling ```orchestrated``` we are submitting the step to the underlying queueing system, enabling the step to be run on other resources (computers). Had we called the ```download``` directly it would have blocked the Ruby thread and would not have taken advantage of (potentially many) ```delayed_job``` job workers.
+You may have also noticed from that example that if you specify no prerequisite then the step will be ready to run immediately, as was the case for the ```download``` calls). If calling ```orchestrate``` with no parameters makes the step ready to run immediately then why should we bother to call it at all? Why not just call the method directly? The answer is that by calling ```orchestrate``` we are submitting the step to the underlying queueing system, enabling the step to be run on other resources (computers). Had we called the ```download``` directly it would have blocked the Ruby thread and would not have taken advantage of (potentially many) ```delayed_job``` job workers.
 
 Users of the framework deal directly with three kinds of prerequisite or "completion expression":
 
@@ -171,9 +171,9 @@ Future Work
 
 Some possible avenues for exploration:
 
-* orchestrated option: :max_attempts to configure max_attempts on underlying delayed job instance
-* orchestrated option: :max_run_time to configure max_run_time on underlying delayed job instance
-* orchestrated options: :queue to specify a particular named queue for the underlying delayed job
+* orchestrate option: :max_attempts to configure max_attempts on underlying delayed job instance
+* orchestrate option: :max_run_time to configure max_run_time on underlying delayed job instance
+* orchestrate options: :queue to specify a particular named queue for the underlying delayed job
 * some way to change the run_at recalculation for failed attempts (f(n) = 5 + n**4 is not always right and what's right varies by job)
 
 License

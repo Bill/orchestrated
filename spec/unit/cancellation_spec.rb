@@ -34,7 +34,7 @@ describe 'cancellation' do
   def dependent;@dependent;end
   context 'directly on an orchestration' do
     before(:each) do
-      @first_prerequisite = @dependent = First.new.orchestrated.do_first_thing(1)
+      @first_prerequisite = @dependent = First.new.orchestrate.do_first_thing(1)
     end
     it 'should be ready' do
       expect(@dependent.orchestration.state).to eq('ready')
@@ -71,16 +71,16 @@ describe 'cancellation' do
   end
   context 'of an orchestration that is depended on directly' do
     before(:each) do
-      @dependent = Second.new.orchestrated( @first_prerequisite = First.new.orchestrated.do_first_thing(1)).do_second_thing(2)
+      @dependent = Second.new.orchestrate( @first_prerequisite = First.new.orchestrate.do_first_thing(1)).do_second_thing(2)
     end
     include_context 'cancelling first prerequisite'
     it_should_behave_like 'cancellation:'
   end
   context 'of an orchestration that is depended on through a LastCompletion' do
     before(:each) do
-      @dependent = Second.new.orchestrated(
+      @dependent = Second.new.orchestrate(
         Orchestrated::LastCompletion.new <<
-          (@first_prerequisite = First.new.orchestrated.do_first_thing(1))
+          (@first_prerequisite = First.new.orchestrate.do_first_thing(1))
         ).do_second_thing(2)
     end
     include_context 'cancelling first prerequisite'
@@ -88,10 +88,10 @@ describe 'cancellation' do
   end
   context 'of an orchestration that is depended on through a FirstCompletion with two prerequisites' do
     before(:each) do
-      @dependent = Second.new.orchestrated(
+      @dependent = Second.new.orchestrate(
         Orchestrated::FirstCompletion.new <<
-          (@first_prerequisite = First.new.orchestrated.do_first_thing(3)) <<
-          (@last_prerequisite = First.new.orchestrated.do_first_thing(1))
+          (@first_prerequisite = First.new.orchestrate.do_first_thing(3)) <<
+          (@last_prerequisite = First.new.orchestrate.do_first_thing(1))
         ).do_second_thing(2)
     end
     context 'after first prerequisite is canceled' do

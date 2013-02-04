@@ -5,7 +5,7 @@ require 'orchestrated'
 describe 'failure' do
   context 'orchestrating a method that always fails' do
     before(:each) do
-      Failer.new.orchestrated.always_fail('important stuff')
+      Failer.new.orchestrate.always_fail('important stuff')
     end
     context 'after first exception from orchestrated method' do
       before(:each) do
