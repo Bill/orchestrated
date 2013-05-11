@@ -33,4 +33,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'debugger'
   # The state_machine:draw rake task needs this
   gem.add_development_dependency 'ruby-graphviz', ['~> 0.9']
+  gem.add_development_dependency 'simplecov'
 end

@@ -1,8 +1,3 @@
-require 'simplecov'
-SimpleCov.start do
-  add_group "Orchestrated", "lib/orchestrated"
-end
-
 # Get Rails environment going. Borrowed from delayed_job_active_record project, then heavily modified
 # ...
 
@@ -10,6 +5,11 @@ $:.unshift(File.join( File.dirname(__FILE__), '../lib'))
 
 require 'rubygems'
 require 'bundler/setup'
+
+require 'simplecov'
+SimpleCov.start do
+  add_group "Orchestrated", "lib/orchestrated"
+end
 
 require 'rails/all' # rspec/rails needs Rails
 require 'rspec/rails' # we want transactional fixtures!

@@ -62,7 +62,7 @@ module Orchestrated
   class FirstCompletion < CompositeCompletion
     def complete?; prerequisite_associations.any?(&:complete?); end
     def always_complete?; prerequisites.any?(&:always_complete?); end
-    def never_complete?; prerequisite_associations.empty?; end
+    def never_complete?; prerequisites.empty?; end
     def canceled?; prerequisite_associations.all?(&:canceled?); end
     def <<(c)
       prerequisites << c unless c.never_complete?
