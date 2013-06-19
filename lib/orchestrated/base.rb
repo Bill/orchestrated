@@ -1,6 +1,7 @@
 module Orchestrated
 
-  class Proxy
+  class Proxy < BasicObject
+    include ::Kernel
     def initialize(prerequisite, target)
       @prerequisite = prerequisite
       @target       = target
