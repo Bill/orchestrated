@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency     'delayed_job_active_record', '~> 0.3.3'
   gem.add_runtime_dependency     'activerecord', ['~> 3.2']
-  gem.add_runtime_dependency     'state_machine', ['~> 1.1.2']
+  gem.add_runtime_dependency     'state_machine', ['~> 1.2']
 
   gem.add_development_dependency 'rake', ['>= 10']
   gem.add_development_dependency 'rails', ['~> 3.2'] # for rspec-rails
@@ -32,6 +32,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'sqlite3', ['~> 1.3']
   gem.add_development_dependency 'debugger'
   # The state_machine:draw rake task needs this
-  gem.add_development_dependency 'ruby-graphviz', ['~> 0.9']
+  gem.add_development_dependency 'ruby-graphviz', ['~> 1.0']
   gem.add_development_dependency 'simplecov'
 end
