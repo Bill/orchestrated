@@ -4,9 +4,18 @@ require 'delayed_job'
 require 'delayed_job_active_record'
 
 module Orchestrated
+
+  class Handler
+    attr_accessor :value
+    attr_accessor :sym
+    attr_accessor :args
+    def initialize(value,sym,args)
+      @value,@sym,@args=value,sym,args
+    end
+  end
+
   class Orchestration < ActiveRecord::Base
 
-    Handler = Struct.new('Handler', :value, :sym, :args)
 
     serialize :handler
 

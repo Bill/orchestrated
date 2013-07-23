@@ -39,7 +39,7 @@ describe Orchestrated do
       # TODO: reimplement the next three functions as Factory Girl factories!
       def create_orchestration
         Orchestrated::Orchestration.new.tap do |orchestration|
-          orchestration.handler = Orchestrated::Orchestration::Handler.new( f, :do_first_thing, [1])
+          orchestration.handler = Orchestrated::Handler.new( f, :do_first_thing, [1])
           orchestration.save!
         end
       end
