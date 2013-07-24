@@ -157,6 +157,18 @@ An orchestration can be canceled by sending the (orchestration completion) the `
 
 The cancellation_spec spells out more of the details.
 
+Ruby 1.8.x Support (BasicObject)
+---------------------------
+
+The orchestrated gem was created for ruby 1.9.x and beyond. However, with [marcandre's backports](https://github.com/marcandre/backports) you can make it work. Simply add the following to your Gemfile, above the orchestrated gem.
+
+```ruby
+gem 'backports', :require => 'backports/basic_object'
+gem 'orchestrated'
+```
+
+Now you can run `bundle install` and you should be good to go.
+
 Contributing
 ------------
 
