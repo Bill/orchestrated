@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency     'delayed_job_active_record', '~> 0.4'
+  gem.add_runtime_dependency     'delayed_job_active_record', '~> 4.0'
   gem.add_runtime_dependency     'activerecord', ['~> 3.2']
   gem.add_runtime_dependency     'state_machine', ['~> 1.2']
 
