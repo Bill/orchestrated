@@ -129,7 +129,7 @@ Key Concept: Orchestration State
 
 An orchestration can be in one of a few states:
 
-![Alt text](https://github.com/paydici/orchestrated/raw/master/Orchestrated::Orchestration_state.png 'Orchestration States')
+![Alt text](https://github.com/stepchud/orchestrated/raw/rails4/Orchestration_state.png 'Orchestration States')
 
 When you create a new orchestration that is waiting on a prerequisite that is not complete yet, the orchestration will be in the "waiting" state. Some time later, if that prerequisite completes, then your orchestration will become "ready". A "ready" orchestration is automatically queued to run by the framework (via [delayed_job](https://github.com/collectiveidea/delayed_job)).
 
